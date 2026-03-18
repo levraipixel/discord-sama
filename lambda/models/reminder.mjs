@@ -9,7 +9,14 @@ export class Reminder {
     const id = crypto.randomUUID();
     await client.send(new PutCommand({
       TableName: TABLE,
-      Item: { id, userId, messageId, channelId, guildId: guildId ?? null, remindAt },
+      Item: {
+        id,
+        userId,
+        messageId,
+        channelId,
+        guildId: guildId ?? null,
+        remindAt: remindAt.toISOString()
+      },
     }));
     return id;
   }
