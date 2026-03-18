@@ -11,7 +11,7 @@ terraform.tfstate.backup
 !example.tfvars
 
 # Build artifacts
-dist/
+lambda/dist/
 
 # Local env
 .env

@@ -9,8 +9,8 @@ locals {
 # ---------------------------------------------------------------------------
 data "archive_file" "lambda" {
   type        = "zip"
-  source_file = "${path.module}/../dist/index.js"
-  output_path = "${path.module}/../dist/lambda.zip"
+  source_file = "${path.module}/../lambda/dist/index.js"
+  output_path = "${path.module}/../lambda/dist/lambda.zip"
 }
 
 # ---------------------------------------------------------------------------
