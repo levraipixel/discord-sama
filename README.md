@@ -91,7 +91,6 @@ In your GitHub repository go to **Settings → Secrets and variables → Actions
 |---|---|
 | `AWS_ROLE_ARN` | `github_actions_role_arn` output from the bootstrap step |
 | `DISCORD_PUBLIC_KEY` | Discord Developer Portal → your app → General Information |
-| `DISCORD_APP_ID` | Discord Developer Portal → your app → General Information |
 | `DISCORD_BOT_TOKEN` | Discord Developer Portal → your app → Bot → Reset Token |
 
 **Variables:**
@@ -101,13 +100,14 @@ In your GitHub repository go to **Settings → Secrets and variables → Actions
 | `AWS_REGION` | `eu-west-3` |
 | `TF_STATE_BUCKET` | `discord-sama-tf-state` (from step 2) |
 | `TF_STATE_LOCK_TABLE` | `discord-sama-tf-lock` (from step 2) |
+| `DISCORD_APP_ID` | Discord Developer Portal → your app → General Information |
 
 > **IAM role for GitHub Actions**
 > The CI workflow uses OIDC — no long-lived access keys are stored in GitHub. The role and its OIDC trust policy are created automatically by the bootstrap step above.
 
 ### 4. Run the first deployment
 
-Push to `main` (or trigger the workflow manually via **Actions → Deploy → Run workflow**). The workflow will:
+Push to `main` to trigger the staging deployment. The workflow will:
 
 1. Install Lambda runtime dependencies
 2. Run `terraform apply` to create all AWS resources
@@ -126,9 +126,18 @@ Click **Save Changes**. Discord will send a `PING` to verify the endpoint before
 
 ## Deploying an update
 
+### Environments
+
+There are two deployment environments:
+
+| Environment | Trigger |
+|---|---|
+| **staging** | Deployed automatically on every push to `main` |
+| **production** | Deployed manually via **Actions → Deploy → Run workflow** (select `production`) |
+
 ### Updating bot logic
 
-Edit a file, commit, and push to `main`. The CI workflow runs automatically and redeploys the Lambda function with the new code.
+Edit a file, commit, and push to `main`. The CI workflow automatically redeploys the Lambda function to **staging**. When ready, trigger a manual workflow run targeting **production**.
 
 ### Adding a new slash command
 
