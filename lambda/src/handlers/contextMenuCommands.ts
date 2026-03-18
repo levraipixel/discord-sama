@@ -1,5 +1,5 @@
-import { Reminder } from '../models/Reminder';
-import { SavedMessage } from '../models/SavedMessage';
+import { Reminders } from '../models/Reminder';
+import { SavedMessages } from '../models/SavedMessage';
 import { respondEphemeral, respondModal } from '../helpers/response';
 import { dateTag } from '../helpers/discord';
 import { getTimezoneOffsetMinutes } from '../helpers/timezone';
@@ -14,7 +14,7 @@ export const handleContextMenuCommand = async (interaction: any) => {
 
   if (name === 'Remind me in 1 hour') {
     const remindAt = new Date(Date.now() + 60 * 60 * 1000);
-    await Reminder.create({ userId, messageId, channelId, guildId, remindAt });
+    await Reminders.create({ userId, messageId, channelId, guildId, remindAt });
     return respondEphemeral(`Got it! I\'ll remind you about this message ${dateTag(remindAt)}. ⏰`);
   }
 
@@ -23,7 +23,7 @@ export const handleContextMenuCommand = async (interaction: any) => {
     naive.setUTCDate(naive.getUTCDate() + 1);
     naive.setUTCHours(9, 0, 0, 0);
     const tomorrow = new Date(naive.getTime() - getTimezoneOffsetMinutes(TIMEZONE, naive) * 60000);
-    await Reminder.create({ userId, messageId, channelId, guildId, remindAt: tomorrow });
+    await Reminders.create({ userId, messageId, channelId, guildId, remindAt: tomorrow });
     return respondEphemeral(`Got it! I'll remind you about this message ${dateTag(tomorrow)}. ⏰`);
   }
 
@@ -46,7 +46,7 @@ export const handleContextMenuCommand = async (interaction: any) => {
   }
 
   if (name === 'Save for later') {
-    await SavedMessage.create({ userId, messageId, channelId, guildId });
+    await SavedMessages.create({ userId, messageId, channelId, guildId });
     return respondEphemeral('Saved! Use `/saved list` to see your saved messages.');
   }
 };

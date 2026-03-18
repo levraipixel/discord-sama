@@ -1,46 +1,32 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, ScanCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { ApplicationRecord, ApplicationRecords, client } from './ApplicationRecord';
 
-const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-const TABLE = process.env.REMINDERS_TABLE_NAME;
-
-export interface ReminderRecord {
-  id: string;
+export interface Reminder extends ApplicationRecord {
   userId: string;
   messageId: string;
   channelId: string;
   guildId: string | null;
-  remindAt: string;
+  remindAt: Date;
 }
 
-export class Reminder {
-  static async create({ userId, messageId, channelId, guildId, remindAt }: Omit<ReminderRecord, 'id' | 'remindAt'> & { remindAt: Date }) {
-    const id = crypto.randomUUID();
-    await client.send(new PutCommand({
-      TableName: TABLE,
-      Item: {
-        id,
-        userId,
-        messageId,
-        channelId,
-        guildId: guildId ?? null,
-        remindAt: remindAt.toISOString()
-      },
-    }));
-    return id;
+export class Reminders extends ApplicationRecords {
+  protected static TABLE = process.env.REMINDERS_TABLE_NAME;
+
+  static async create({ userId, messageId, channelId, guildId, remindAt }: Omit<Reminder, 'id' | 'createdAt' | 'updatedAt'>) {
+    return super.create({ userId, messageId, channelId, guildId: guildId ?? null, remindAt: remindAt.toISOString() });
   }
 
-  static async getDue(now: Date): Promise<ReminderRecord[]> {
-    const result = await client.send(new ScanCommand({ TableName: TABLE }));
-    return (result.Items ?? []).filter((r) => r.remindAt && r.remindAt <= now.toISOString()) as ReminderRecord[];
+  static async getDue(now: Date): Promise<Reminder[]> {
+    const result = await client.send(new ScanCommand({ TableName: this.TABLE }));
+    return (result.Items ?? [])
+      .filter((r) => r.remindAt && new Date(r.remindAt) <= now)
+      .map((r) => ({ ...r, remindAt: new Date(r.remindAt) })) as Reminder[];
   }
 
-  static async getAllForUser(userId: string): Promise<ReminderRecord[]> {
-    const result = await client.send(new ScanCommand({ TableName: TABLE }));
-    return (result.Items ?? []).filter((r) => r.userId === userId && r.remindAt) as ReminderRecord[];
-  }
-
-  static async delete(id: string) {
-    await client.send(new DeleteCommand({ TableName: TABLE, Key: { id } }));
+  static async getAllForUser(userId: string): Promise<Reminder[]> {
+    const result = await client.send(new ScanCommand({ TableName: this.TABLE }));
+    return (result.Items ?? [])
+      .filter((r) => r.userId === userId && r.remindAt)
+      .map((r) => ({ ...r, remindAt: new Date(r.remindAt) })) as Reminder[];
   }
 }

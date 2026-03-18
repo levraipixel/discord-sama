@@ -1,5 +1,5 @@
 import * as chrono from 'chrono-node';
-import { Reminder } from '../models/Reminder';
+import { Reminders } from '../models/Reminder';
 import { dateTag } from '../helpers/discord';
 import { respondEphemeral } from '../helpers/response';
 import { getTimezoneOffsetMinutes } from '../helpers/timezone';
@@ -32,7 +32,7 @@ export const handleModalSubmission = async (interaction: any) => {
       return respondEphemeral('Please provide a future date.');
     }
 
-    await Reminder.create({ userId, messageId, channelId, guildId: interaction.guild_id ?? null, remindAt });
+    await Reminders.create({ userId, messageId, channelId, guildId: interaction.guild_id ?? null, remindAt });
 
     const ts = Math.floor(remindAt.getTime() / 1000);
     return respondEphemeral(`Got it! I'll remind you about this message ${dateTag(remindAt)}. ⏰`);

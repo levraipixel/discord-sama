@@ -1,5 +1,5 @@
-import { Reminder } from '../models/Reminder';
-import { SavedMessage } from '../models/SavedMessage';
+import { Reminders } from '../models/Reminder';
+import { SavedMessages } from '../models/SavedMessage';
 import { dateTag } from '../helpers/discord';
 import { respondEphemeral } from '../helpers/response';
 import { messageLink } from '../helpers/discord';
@@ -12,7 +12,7 @@ export const handleSlashCommand = async (interaction: any) => {
   if (name === 'saved') {
     const action = options?.find((o: any) => o.name === 'action')?.value;
     const userId = interaction.member?.user?.id ?? interaction.user?.id;
-    const mine = await SavedMessage.getAllForUser(userId);
+    const mine = await SavedMessages.getAllForUser(userId);
 
     if (action === 'list') {
       if (mine.length === 0) return respondEphemeral('You have no saved messages.');
@@ -24,7 +24,7 @@ export const handleSlashCommand = async (interaction: any) => {
 
     if (action === 'clear') {
       if (mine.length === 0) return respondEphemeral('You have no saved messages to clear.');
-      await Promise.all(mine.map((r) => SavedMessage.delete(r.id)));
+      await Promise.all(mine.map((r) => SavedMessages.delete(r.id)));
       return respondEphemeral(`Cleared ${mine.length} saved message(s).`);
     }
   }
@@ -32,19 +32,19 @@ export const handleSlashCommand = async (interaction: any) => {
   if (name === 'remind') {
     const action = options?.find((o: any) => o.name === 'action')?.value;
     const userId = interaction.member?.user?.id ?? interaction.user?.id;
-    const mine = await Reminder.getAllForUser(userId);
+    const mine = await Reminders.getAllForUser(userId);
 
     if (action === 'list') {
       if (mine.length === 0) return respondEphemeral('You have no scheduled reminders.');
       const lines = mine.map((r) => {
-        return `- ${messageLink(r)} — ${dateTag(new Date(r.remindAt))}`;
+        return `- ${messageLink(r)} — ${dateTag(r.remindAt)}`;
       });
       return respondEphemeral(`Your reminders:\n${lines.join('\n')}`);
     }
 
     if (action === 'clear') {
       if (mine.length === 0) return respondEphemeral('You have no reminders to clear.');
-      await Promise.all(mine.map((r) => Reminder.delete(r.id)));
+      await Promise.all(mine.map((r) => Reminders.delete(r.id)));
       return respondEphemeral(`Cleared ${mine.length} reminder(s).`);
     }
   }
