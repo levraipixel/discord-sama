@@ -9,9 +9,8 @@ locals {
 # ---------------------------------------------------------------------------
 data "archive_file" "lambda" {
   type        = "zip"
-  source_dir  = "${path.module}/../lambda"
+  source_file = "${path.module}/../dist/index.js"
   output_path = "${path.module}/../dist/lambda.zip"
-  excludes    = ["package-lock.json"]
 }
 
 # ---------------------------------------------------------------------------

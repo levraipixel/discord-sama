@@ -33,7 +33,11 @@ jobs:
 
       - name: Install Lambda dependencies
         working-directory: lambda
-        run: npm ci --omit=dev
+        run: npm ci
+
+      - name: Build Lambda
+        working-directory: lambda
+        run: npm run build
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4

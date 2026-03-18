@@ -1,16 +1,16 @@
 import { verifyKey, InteractionType, InteractionResponseType } from 'discord-interactions';
 import { LambdaClient } from '@aws-sdk/client-lambda';
-import { checkReminders } from './tasks/checkReminders.mjs';
-import { handleContextMenuCommand } from './handlers/contextMenuCommands.mjs';
-import { handleModalSubmission } from './handlers/modalSubmissions.mjs';
-import { handleSlashCommand } from './handlers/slashCommands.mjs';
+import { checkReminders } from './tasks/checkReminders';
+import { handleContextMenuCommand } from './handlers/contextMenuCommands';
+import { handleModalSubmission } from './handlers/modalSubmissions';
+import { handleSlashCommand } from './handlers/slashCommands';
 
 const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION });
 // Eagerly resolve IAM credentials during cold start so the first handler
 // invocation doesn't pay the IMDS latency cost inside the 3s Discord window.
 lambdaClient.config.credentials().catch(() => {});
 
-export const handler = async (event) => {
+export const handler = async (event: any) => {
   console.log('Received event:', JSON.stringify(event));
 
   if (event.asyncTask === 'checkReminders') {
@@ -23,7 +23,7 @@ export const handler = async (event) => {
   const rawBody = event.body ?? '';
 
   if (process.env.LOCAL_MODE !== 'true') {
-    const isValid = verifyKey(rawBody, signature, timestamp, process.env.DISCORD_PUBLIC_KEY);
+    const isValid = verifyKey(rawBody, signature ?? '', timestamp ?? '', process.env.DISCORD_PUBLIC_KEY ?? '');
     if (!isValid) {
       return { statusCode: 401, body: 'Invalid request signature' };
     }

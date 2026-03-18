@@ -1,5 +1,5 @@
-import { Reminder } from '../models/Reminder.mjs';
-import { messageLink, sendDirectMessage } from '../helpers/discord.mjs';
+import { Reminder } from '../models/Reminder';
+import { messageLink, sendDirectMessage } from '../helpers/discord';
 
 export const checkReminders = async () => {
   console.log('Running async task: checkReminders');

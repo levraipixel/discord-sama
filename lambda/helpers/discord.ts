@@ -1,13 +1,13 @@
-export const messageLink = ({ guildId, channelId, messageId }) =>
+export const messageLink = ({ guildId, channelId, messageId }: { guildId: string | null; channelId: string; messageId: string }) =>
   `https://discord.com/channels/${guildId ?? '@me'}/${channelId}/${messageId}`;
 
-export const dateTag = (date) => {
+export const dateTag = (date: Date) => {
   const ts = Math.floor(date.getTime() / 1000);
   return `<t:${ts}:R>`;
 };
 
 // TODO: memoize this
-export const findDirectMessageChannelId = async (userId) => {
+export const findDirectMessageChannelId = async (userId: string) => {
   const dmRes = await fetch(`https://discord.com/api/v10/users/@me/channels`, {
     method: 'POST',
     headers: {
@@ -22,7 +22,7 @@ export const findDirectMessageChannelId = async (userId) => {
   return dmChannelId;
 };
 
-export const sendMessage = async (channelId, content) => {
+export const sendMessage = async (channelId: string, content: string) => {
   const msgRes = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
     method: 'POST',
     headers: {
@@ -34,7 +34,7 @@ export const sendMessage = async (channelId, content) => {
   if (!msgRes.ok) throw new Error(`Failed to send DM: ${msgRes.status} ${await msgRes.text()}`);
 };
 
-export const sendDirectMessage = async (userId, content) => {
+export const sendDirectMessage = async (userId: string, content: string) => {
   const dmChannelId = await findDirectMessageChannelId(userId);
   await sendMessage(dmChannelId, content);
 };

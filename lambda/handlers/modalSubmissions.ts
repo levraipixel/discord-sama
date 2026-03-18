@@ -1,12 +1,12 @@
 import * as chrono from 'chrono-node';
-import { Reminder } from '../models/Reminder.mjs';
-import { dateTag } from '../helpers/discord.mjs';
-import { respondEphemeral } from '../helpers/response.mjs';
-import { getTimezoneOffsetMinutes } from '../helpers/timezone.mjs';
+import { Reminder } from '../models/Reminder';
+import { dateTag } from '../helpers/discord';
+import { respondEphemeral } from '../helpers/response';
+import { getTimezoneOffsetMinutes } from '../helpers/timezone';
 
 const TIMEZONE = 'Europe/Paris';
 
-export const handleModalSubmission = async (interaction) => {
+export const handleModalSubmission = async (interaction: any) => {
   const { custom_id, components } = interaction.data;
 
   if (custom_id.startsWith('remind_date:')) {

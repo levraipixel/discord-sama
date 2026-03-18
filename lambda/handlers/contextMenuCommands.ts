@@ -1,12 +1,12 @@
-import { Reminder } from '../models/Reminder.mjs';
-import { SavedMessage } from '../models/SavedMessage.mjs';
-import { respondEphemeral, respondModal } from '../helpers/response.mjs';
-import { dateTag } from '../helpers/discord.mjs';
-import { getTimezoneOffsetMinutes } from '../helpers/timezone.mjs';
+import { Reminder } from '../models/Reminder';
+import { SavedMessage } from '../models/SavedMessage';
+import { respondEphemeral, respondModal } from '../helpers/response';
+import { dateTag } from '../helpers/discord';
+import { getTimezoneOffsetMinutes } from '../helpers/timezone';
 
 const TIMEZONE = 'Europe/Paris';
 
-export const handleContextMenuCommand = async (interaction) => {
+export const handleContextMenuCommand = async (interaction: any) => {
   const { name, target_id: messageId } = interaction.data;
   const userId = interaction.member?.user?.id ?? interaction.user?.id;
   const channelId = interaction.channel_id;

@@ -1,16 +1,16 @@
-import { Reminder } from '../models/Reminder.mjs';
-import { SavedMessage } from '../models/SavedMessage.mjs';
-import { dateTag } from '../helpers/discord.mjs';
-import { respondEphemeral } from '../helpers/response.mjs';
-import { messageLink } from '../helpers/discord.mjs';
+import { Reminder } from '../models/Reminder';
+import { SavedMessage } from '../models/SavedMessage';
+import { dateTag } from '../helpers/discord';
+import { respondEphemeral } from '../helpers/response';
+import { messageLink } from '../helpers/discord';
 
-export const handleSlashCommand = async (interaction) => {
+export const handleSlashCommand = async (interaction: any) => {
   const { name, options } = interaction.data;
-  const args = options?.map((o) => `${o.name}=${o.value}`).join(', ') ?? '';
+  const args = options?.map((o: any) => `${o.name}=${o.value}`).join(', ') ?? '';
   console.log(`Command: /${name}${args ? ` (${args})` : ''}`);
 
   if (name === 'saved') {
-    const action = options?.find((o) => o.name === 'action')?.value;
+    const action = options?.find((o: any) => o.name === 'action')?.value;
     const userId = interaction.member?.user?.id ?? interaction.user?.id;
     const mine = await SavedMessage.getAllForUser(userId);
 
@@ -30,14 +30,14 @@ export const handleSlashCommand = async (interaction) => {
   }
 
   if (name === 'remind') {
-    const action = options?.find((o) => o.name === 'action')?.value;
+    const action = options?.find((o: any) => o.name === 'action')?.value;
     const userId = interaction.member?.user?.id ?? interaction.user?.id;
     const mine = await Reminder.getAllForUser(userId);
 
     if (action === 'list') {
       if (mine.length === 0) return respondEphemeral('You have no scheduled reminders.');
       const lines = mine.map((r) => {
-        return `- ${messageLink(r)} — ${dateTag(r.remindAt)}`;
+        return `- ${messageLink(r)} — ${dateTag(new Date(r.remindAt))}`;
       });
       return respondEphemeral(`Your reminders:\n${lines.join('\n')}`);
     }

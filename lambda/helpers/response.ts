@@ -1,6 +1,6 @@
 import { InteractionResponseType } from 'discord-interactions';
 
-export const respond = (content) => ({
+export const respond = (content: string) => ({
   statusCode: 200,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -9,7 +9,7 @@ export const respond = (content) => ({
   }),
 });
 
-export const respondEphemeral = (content) => ({
+export const respondEphemeral = (content: string) => ({
   statusCode: 200,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -18,7 +18,7 @@ export const respondEphemeral = (content) => ({
   }),
 });
 
-export const respondModal = (customId, title, components) => ({
+export const respondModal = (customId: string, title: string, components: unknown[]) => ({
   statusCode: 200,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
