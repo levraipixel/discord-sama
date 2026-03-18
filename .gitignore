@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+lambda/node_modules/
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+!example.tfvars
+
+# Build artifacts
+dist/
+
+# Local env
+.env
+
+# Local DynamoDB mock database
+.discord-sama-local.db
+
+# OS
+.DS_Store
