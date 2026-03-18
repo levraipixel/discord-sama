@@ -1,7 +1,8 @@
 import * as chrono from 'chrono-node';
 import { verifyKey, InteractionType, InteractionResponseType } from 'discord-interactions';
-import { saveReminder, getAllReminders, getDueReminders, deleteReminder } from './models/reminder.mjs';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { Reminder } from './models/Reminder.mjs';
+import { SavedMessage } from './models/SavedMessage.mjs';
 
 const TIMEZONE = 'Europe/Paris'; // Used for parsing user input and scheduling reminders at "9am tomorrow" etc.
 
@@ -52,7 +53,7 @@ export const handler = async (event) => {
   if (event.asyncTask === 'checkReminders') {
     console.log('Running async task: checkReminders');
     const now = new Date();
-    const due = await getDueReminders(now);
+    const due = await Reminder.getDue(now);
     console.log(`checkReminders: ${due.length} due reminder(s)`);
     await Promise.all(due.map(async (reminder) => {
       try {
@@ -79,7 +80,7 @@ export const handler = async (event) => {
         });
         if (!msgRes.ok) throw new Error(`Failed to send DM: ${msgRes.status} ${await msgRes.text()}`);
 
-        await deleteReminder(reminder.id);
+        await Reminder.delete(reminder.id);
         console.log(`checkReminders: sent reminder ${reminder.id} to user ${reminder.userId}`);
       } catch (err) {
         console.error(`checkReminders: failed for reminder ${reminder.id}:`, err);
@@ -117,7 +118,7 @@ export const handler = async (event) => {
 
     if (name === 'Remind me in 1 hour') {
       const remindAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      await saveReminder({
+      await Reminder.create({
         userId: interaction.member?.user?.id ?? interaction.user?.id,
         messageId,
         channelId: interaction.channel_id,
@@ -133,7 +134,7 @@ export const handler = async (event) => {
       naive.setUTCHours(9, 0, 0, 0);
       const tomorrow = new Date(naive.getTime() - getTimezoneOffsetMinutes(TIMEZONE, naive) * 60000);
       const remindAt = tomorrow.toISOString();
-      await saveReminder({
+      await Reminder.create({
         userId: interaction.member?.user?.id ?? interaction.user?.id,
         messageId,
         channelId: interaction.channel_id,
@@ -145,12 +146,11 @@ export const handler = async (event) => {
     }
 
     if (name === 'Save for later') {
-      await saveReminder({
+      await SavedMessage.create({
         userId: interaction.member?.user?.id ?? interaction.user?.id,
         messageId,
         channelId: interaction.channel_id,
         guildId: interaction.guild_id ?? null,
-        remindAt: null,
       });
       return respondEphemeral('Saved! Use `/saved list` to see your saved messages.');
     }
@@ -212,7 +212,7 @@ export const handler = async (event) => {
         return respondEphemeral('Please provide a future date.');
       }
 
-      await saveReminder({
+      await Reminder.create({
         userId,
         messageId,
         channelId,
@@ -234,8 +234,7 @@ export const handler = async (event) => {
     if (name === 'saved') {
       const action = options?.find((o) => o.name === 'action')?.value;
       const userId = interaction.member?.user?.id ?? interaction.user?.id;
-      const all = await getAllReminders();
-      const mine = all.filter((r) => r.userId === userId && !r.remindAt);
+      const mine = await SavedMessage.getAllForUser(userId);
 
       if (action === 'list') {
         if (mine.length === 0) return respondEphemeral('You have no saved messages.');
@@ -248,7 +247,7 @@ export const handler = async (event) => {
 
       if (action === 'clear') {
         if (mine.length === 0) return respondEphemeral('You have no saved messages to clear.');
-        await Promise.all(mine.map((r) => deleteReminder(r.id)));
+        await Promise.all(mine.map((r) => SavedMessage.delete(r.id)));
         return respondEphemeral(`Cleared ${mine.length} saved message(s).`);
       }
     }
@@ -256,8 +255,7 @@ export const handler = async (event) => {
     if (name === 'remind') {
       const action = options?.find((o) => o.name === 'action')?.value;
       const userId = interaction.member?.user?.id ?? interaction.user?.id;
-      const all = await getAllReminders();
-      const mine = all.filter((r) => r.userId === userId && r.remindAt);
+      const mine = await Reminder.getAllForUser(userId);
 
       if (action === 'list') {
         if (mine.length === 0) return respondEphemeral('You have no scheduled reminders.');
@@ -272,7 +270,7 @@ export const handler = async (event) => {
 
       if (action === 'clear') {
         if (mine.length === 0) return respondEphemeral('You have no reminders to clear.');
-        await Promise.all(mine.map((r) => deleteReminder(r.id)));
+        await Promise.all(mine.map((r) => Reminder.delete(r.id)));
         return respondEphemeral(`Cleared ${mine.length} reminder(s).`);
       }
     }

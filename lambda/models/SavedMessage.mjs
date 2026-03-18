@@ -4,24 +4,19 @@ import { DynamoDBDocumentClient, PutCommand, ScanCommand, DeleteCommand } from '
 const client = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const TABLE = process.env.REMINDERS_TABLE_NAME;
 
-export class Reminder {
-  static async create({ userId, messageId, channelId, guildId, remindAt }) {
+export class SavedMessage {
+  static async create({ userId, messageId, channelId, guildId }) {
     const id = crypto.randomUUID();
     await client.send(new PutCommand({
       TableName: TABLE,
-      Item: { id, userId, messageId, channelId, guildId: guildId ?? null, remindAt },
+      Item: { id, userId, messageId, channelId, guildId: guildId ?? null, remindAt: null },
     }));
     return id;
   }
 
-  static async getDue(now) {
-    const result = await client.send(new ScanCommand({ TableName: TABLE }));
-    return result.Items.filter((r) => r.remindAt && r.remindAt <= now.toISOString());
-  }
-
   static async getAllForUser(userId) {
     const result = await client.send(new ScanCommand({ TableName: TABLE }));
-    return result.Items.filter((r) => r.userId === userId && r.remindAt);
+    return result.Items.filter((r) => r.userId === userId && !r.remindAt);
   }
 
   static async delete(id) {
