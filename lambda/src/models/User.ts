@@ -1,4 +1,4 @@
-import { GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { ApplicationRecord, ApplicationRecords, client } from './ApplicationRecord';
 import { findDirectMessageChannelId } from '../helpers/discord';
 
@@ -43,6 +43,20 @@ export class Users extends ApplicationRecords {
     const result = await client.send(new ScanCommand({ TableName: this.TABLE }));
     const item = (result.Items ?? []).find((u) => u.discordUserId === discordUserId);
     return (item as User) ?? null;
+  }
+
+  static async update(id: string, patch: Partial<Pick<User, 'language' | 'timezone' | 'dailyReminderHour' | 'dailyReminderMinutes'>>) {
+    const fields = Object.keys(patch) as Array<keyof typeof patch>;
+    await client.send(new UpdateCommand({
+      TableName: this.TABLE,
+      Key: { id },
+      UpdateExpression: 'SET ' + fields.map((f) => `#${f} = :${f}`).join(', ') + ', updatedAt = :updatedAt',
+      ExpressionAttributeNames: Object.fromEntries(fields.map((f) => [`#${f}`, f])),
+      ExpressionAttributeValues: {
+        ...Object.fromEntries(fields.map((f) => [`:${f}`, patch[f]])),
+        ':updatedAt': new Date().toISOString(),
+      },
+    }));
   }
 
   static async findOrCreateByDiscordUserId(discordUserId: string): Promise<User> {

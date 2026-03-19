@@ -1,6 +1,7 @@
 import { verifyKey, InteractionType, InteractionResponseType } from 'discord-interactions';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { checkReminders } from './tasks/checkReminders';
+import { handleComponentInteraction } from './handlers/componentInteractions';
 import { handleContextMenuCommand } from './handlers/contextMenuCommands';
 import { handleModalSubmission } from './handlers/modalSubmissions';
 import { handleSlashCommand } from './handlers/slashCommands';
@@ -39,11 +40,15 @@ export const handler = async (event: any) => {
     };
   }
 
+  if (interaction.type === InteractionType.MESSAGE_COMPONENT) {
+    return handleComponentInteraction(interaction);
+  }
+
   if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data.type === 3) {
     return handleContextMenuCommand(interaction);
   }
 
-  if (interaction.type === 5) { // MODAL_SUBMIT
+  if (interaction.type === InteractionType.MODAL_SUBMIT) {
     return handleModalSubmission(interaction);
   }
 

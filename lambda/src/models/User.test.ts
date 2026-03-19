@@ -18,6 +18,7 @@ vi.mock('@aws-sdk/lib-dynamodb', () => ({
   DeleteCommand: vi.fn((input) => ({ input })),
   ScanCommand: vi.fn((input) => ({ input })),
   GetCommand: vi.fn((input) => ({ input })),
+  UpdateCommand: vi.fn((input) => ({ input })),
 }));
 
 const dbUser = { id: '1', discordUserId: 'u1', dmChannelId: 'dm1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null };
@@ -126,6 +127,34 @@ describe('Users.findByDiscordUserId', () => {
     const user = await Users.findByDiscordUserId('u1');
 
     expect(user).toBeNull();
+  });
+});
+
+describe('Users.update', () => {
+  it('sends an UpdateCommand with the correct expression for a single field', async () => {
+    sendMock.mockResolvedValue({} as any);
+
+    await Users.update('1', { language: 'fr' });
+
+    const [command] = sendMock.mock.calls[0];
+    expect((command as any).input).toMatchObject({
+      TableName: TABLE,
+      Key: { id: '1' },
+      UpdateExpression: 'SET #language = :language, updatedAt = :updatedAt',
+      ExpressionAttributeNames: { '#language': 'language' },
+      ExpressionAttributeValues: { ':language': 'fr' },
+    });
+  });
+
+  it('sends an UpdateCommand for multiple fields', async () => {
+    sendMock.mockResolvedValue({} as any);
+
+    await Users.update('1', { dailyReminderHour: 8, dailyReminderMinutes: 30 });
+
+    const [command] = sendMock.mock.calls[0];
+    const { ExpressionAttributeNames, ExpressionAttributeValues } = (command as any).input;
+    expect(ExpressionAttributeNames).toMatchObject({ '#dailyReminderHour': 'dailyReminderHour', '#dailyReminderMinutes': 'dailyReminderMinutes' });
+    expect(ExpressionAttributeValues).toMatchObject({ ':dailyReminderHour': 8, ':dailyReminderMinutes': 30 });
   });
 });
 

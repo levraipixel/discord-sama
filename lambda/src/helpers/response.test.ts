@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InteractionResponseType } from 'discord-interactions';
-import { respond, respondEphemeral, respondModal } from './response';
+import { respond, respondEphemeral, respondEphemeralWithComponents, respondModal, respondUpdateMessage } from './response';
 
 describe('respond', () => {
   it('returns a 200 with CHANNEL_MESSAGE_WITH_SOURCE type', () => {
@@ -23,6 +23,34 @@ describe('respondEphemeral', () => {
     expect(body.type).toBe(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
     expect(body.data.content).toBe('Only you can see this');
     expect(body.data.flags).toBe(64);
+  });
+});
+
+describe('respondEphemeralWithComponents', () => {
+  it('returns a 200 ephemeral message with components', () => {
+    const components = [{ type: 1, components: [] }];
+    const result = respondEphemeralWithComponents('Pick one:', components);
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(200);
+    expect(body.type).toBe(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
+    expect(body.data.content).toBe('Pick one:');
+    expect(body.data.flags).toBe(64);
+    expect(body.data.components).toEqual(components);
+  });
+});
+
+describe('respondUpdateMessage', () => {
+  it('returns a 200 with type 7 and components', () => {
+    const components = [{ type: 1, components: [] }];
+    const result = respondUpdateMessage('Updated!', components);
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(200);
+    expect(body.type).toBe(7);
+    expect(body.data.content).toBe('Updated!');
+    expect(body.data.flags).toBe(64);
+    expect(body.data.components).toEqual(components);
   });
 });
 

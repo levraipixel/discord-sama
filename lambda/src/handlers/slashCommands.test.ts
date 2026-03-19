@@ -13,6 +13,9 @@ vi.mock('../helpers/discord', () => ({
   messageLink: vi.fn((r: any) => `https://discord.com/channels/${r.guildId}/${r.channelId}/${r.messageId}`),
   dateTag: vi.fn(() => '<t:9999:R>'),
 }));
+vi.mock('../helpers/settings', () => ({
+  buildSettingsMessage: vi.fn(() => ({ content: 'settings content', components: [{ type: 1 }] })),
+}));
 
 import { handleSlashCommand } from './slashCommands';
 import { Reminders } from '../models/Reminder';
@@ -120,6 +123,17 @@ describe('/remind', () => {
       expect(Reminders.delete).toHaveBeenCalledWith('2');
       expect(JSON.parse(result!.body).data.content).toBe('Cleared 2 reminder(s).');
     });
+  });
+});
+
+describe('/settings', () => {
+  it('responds with an ephemeral message containing the settings components', async () => {
+    const result = await handleSlashCommand({ data: { name: 'settings', options: [] }, member: { user: { id: 'user-1' } } });
+    const body = JSON.parse(result!.body);
+
+    expect(body.data.content).toBe('settings content');
+    expect(body.data.components).toEqual([{ type: 1 }]);
+    expect(body.data.flags).toBe(64);
   });
 });
 
