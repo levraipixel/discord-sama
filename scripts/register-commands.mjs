@@ -18,6 +18,10 @@ if (!APP_ID || !BOT_TOKEN) {
 
 const commands = [
   {
+    name: 'settings',
+    description: 'View and update your personal settings',
+  },
+  {
     name: 'hello',
     description: 'Say hello to Discord Sama',
   },
