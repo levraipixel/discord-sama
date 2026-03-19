@@ -1,14 +1,15 @@
 import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
+import { Users } from '../models/User';
 import { respondEphemeral, respondModal } from '../helpers/response';
 import { dateTag } from '../helpers/discord';
 import { getTimezoneOffsetMinutes } from '../helpers/timezone';
 
-const TIMEZONE = 'Europe/Paris';
-
 export const handleContextMenuCommand = async (interaction: any) => {
   const { name, target_id: messageId } = interaction.data;
-  const userId = interaction.member?.user?.id ?? interaction.user?.id;
+  const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
+  const user = await Users.findOrCreateByDiscordUserId(discordUserId);
+  const userId = user.id;
   const channelId = interaction.channel_id;
   const guildId = interaction.guild_id ?? null;
 
@@ -21,8 +22,8 @@ export const handleContextMenuCommand = async (interaction: any) => {
   if (name === 'Remind me tomorrow') {
     const naive = new Date();
     naive.setUTCDate(naive.getUTCDate() + 1);
-    naive.setUTCHours(9, 0, 0, 0);
-    const tomorrow = new Date(naive.getTime() - getTimezoneOffsetMinutes(TIMEZONE, naive) * 60000);
+    naive.setUTCHours(user.dailyReminderHour, user.dailyReminderMinutes, 0, 0);
+    const tomorrow = new Date(naive.getTime() - getTimezoneOffsetMinutes(user.timezone, naive) * 60000);
     await Reminders.create({ userId, messageId, channelId, guildId, remindAt: tomorrow });
     return respondEphemeral(`Got it! I'll remind you about this message ${dateTag(tomorrow)}. ⏰`);
   }

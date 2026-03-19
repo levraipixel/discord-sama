@@ -6,6 +6,9 @@ vi.mock('../models/Reminder', () => ({
 vi.mock('../models/SavedMessage', () => ({
   SavedMessages: { getAllForUser: vi.fn(), delete: vi.fn() },
 }));
+vi.mock('../models/User', () => ({
+  Users: { findOrCreateByDiscordUserId: vi.fn() },
+}));
 vi.mock('../helpers/discord', () => ({
   messageLink: vi.fn((r: any) => `https://discord.com/channels/${r.guildId}/${r.channelId}/${r.messageId}`),
   dateTag: vi.fn(() => '<t:9999:R>'),
@@ -14,6 +17,9 @@ vi.mock('../helpers/discord', () => ({
 import { handleSlashCommand } from './slashCommands';
 import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
+import { Users } from '../models/User';
+
+const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
 
 const interaction = (name: string, action: string, userId = 'user-1') => ({
   data: { name, options: [{ name: 'action', value: action }] },
@@ -46,6 +52,7 @@ beforeEach(() => {
   vi.mocked(SavedMessages.delete).mockResolvedValue(undefined);
   vi.mocked(Reminders.getAllForUser).mockReset();
   vi.mocked(Reminders.delete).mockResolvedValue(undefined);
+  vi.mocked(Users.findOrCreateByDiscordUserId).mockReset().mockResolvedValue(mockUser as any);
 });
 
 describe('/saved', () => {

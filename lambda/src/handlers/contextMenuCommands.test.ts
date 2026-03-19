@@ -6,6 +6,9 @@ vi.mock('../models/Reminder', () => ({
 vi.mock('../models/SavedMessage', () => ({
   SavedMessages: { create: vi.fn() },
 }));
+vi.mock('../models/User', () => ({
+  Users: { findOrCreateByDiscordUserId: vi.fn() },
+}));
 vi.mock('../helpers/discord', () => ({
   dateTag: vi.fn(() => '<t:9999:R>'),
 }));
@@ -13,6 +16,9 @@ vi.mock('../helpers/discord', () => ({
 import { handleContextMenuCommand } from './contextMenuCommands';
 import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
+import { Users } from '../models/User';
+
+const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
 
 const interaction = (name: string, overrides: Record<string, unknown> = {}) => ({
   data: { name, target_id: 'msg-1' },
@@ -25,6 +31,7 @@ const interaction = (name: string, overrides: Record<string, unknown> = {}) => (
 beforeEach(() => {
   vi.mocked(Reminders.create).mockReset().mockResolvedValue('00000000-0000-0000-0000-000000000001');
   vi.mocked(SavedMessages.create).mockReset().mockResolvedValue('00000000-0000-0000-0000-000000000002');
+  vi.mocked(Users.findOrCreateByDiscordUserId).mockReset().mockResolvedValue(mockUser as any);
 });
 
 describe('handleContextMenuCommand', () => {
@@ -45,7 +52,7 @@ describe('handleContextMenuCommand', () => {
   });
 
   describe('"Remind me tomorrow"', () => {
-    it('creates a reminder for tomorrow at 9am Paris and responds', async () => {
+    it("creates a reminder for tomorrow at the user's preferred time and timezone and responds", async () => {
       const result = await handleContextMenuCommand(interaction('Remind me tomorrow'));
 
       expect(Reminders.create).toHaveBeenCalledOnce();
@@ -72,7 +79,7 @@ describe('handleContextMenuCommand', () => {
       const result = await handleContextMenuCommand(interaction('Save for later'));
 
       expect(SavedMessages.create).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'user-1', messageId: 'msg-1', channelId: 'chan-1', guildId: 'guild-1' }),
+        expect.objectContaining({ userId: 'internal-user-1', messageId: 'msg-1', channelId: 'chan-1', guildId: 'guild-1' }),
       );
       const body = JSON.parse(result!.body);
       expect(body.data.content).toContain('Saved!');
@@ -84,7 +91,8 @@ describe('handleContextMenuCommand', () => {
       const i = { data: { name: 'Save for later', target_id: 'msg-1' }, user: { id: 'dm-user' }, channel_id: 'c1' };
       await handleContextMenuCommand(i);
 
-      expect(SavedMessages.create).toHaveBeenCalledWith(expect.objectContaining({ userId: 'dm-user' }));
+      expect(Users.findOrCreateByDiscordUserId).toHaveBeenCalledWith('dm-user');
+      expect(SavedMessages.create).toHaveBeenCalledWith(expect.objectContaining({ userId: 'internal-user-1' }));
     });
   });
 

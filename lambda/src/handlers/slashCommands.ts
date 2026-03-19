@@ -1,5 +1,6 @@
 import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
+import { Users } from '../models/User';
 import { dateTag } from '../helpers/discord';
 import { respondEphemeral } from '../helpers/response';
 import { messageLink } from '../helpers/discord';
@@ -11,8 +12,9 @@ export const handleSlashCommand = async (interaction: any) => {
 
   if (name === 'saved') {
     const action = options?.find((o: any) => o.name === 'action')?.value;
-    const userId = interaction.member?.user?.id ?? interaction.user?.id;
-    const mine = await SavedMessages.getAllForUser(userId);
+    const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
+    const user = await Users.findOrCreateByDiscordUserId(discordUserId);
+    const mine = await SavedMessages.getAllForUser(user.id);
 
     if (action === 'list') {
       if (mine.length === 0) return respondEphemeral('You have no saved messages.');
@@ -31,8 +33,9 @@ export const handleSlashCommand = async (interaction: any) => {
 
   if (name === 'remind') {
     const action = options?.find((o: any) => o.name === 'action')?.value;
-    const userId = interaction.member?.user?.id ?? interaction.user?.id;
-    const mine = await Reminders.getAllForUser(userId);
+    const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
+    const user = await Users.findOrCreateByDiscordUserId(discordUserId);
+    const mine = await Reminders.getAllForUser(user.id);
 
     if (action === 'list') {
       if (mine.length === 0) return respondEphemeral('You have no scheduled reminders.');

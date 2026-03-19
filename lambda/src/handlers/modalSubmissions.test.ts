@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../models/Reminder', () => ({
   Reminders: { create: vi.fn() },
 }));
+vi.mock('../models/User', () => ({
+  Users: { findOrCreateByDiscordUserId: vi.fn() },
+}));
 vi.mock('../helpers/discord', () => ({
   dateTag: vi.fn(() => '<t:9999:R>'),
 }));
@@ -13,6 +16,9 @@ vi.mock('chrono-node', () => ({
 import * as chrono from 'chrono-node';
 import { handleModalSubmission } from './modalSubmissions';
 import { Reminders } from '../models/Reminder';
+import { Users } from '../models/User';
+
+const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
 
 const interaction = (customId: string, dateValue: string, overrides: Record<string, unknown> = {}) => ({
   data: {
@@ -31,6 +37,7 @@ const parsedDate = (date: Date, certainHour = true) => ({
 
 beforeEach(() => {
   vi.mocked(Reminders.create).mockReset().mockResolvedValue('00000000-0000-0000-0000-000000000001');
+  vi.mocked(Users.findOrCreateByDiscordUserId).mockReset().mockResolvedValue(mockUser as any);
   vi.mocked(chrono.parse).mockReset();
 });
 
@@ -77,7 +84,8 @@ describe('handleModalSubmission', () => {
       expect(body.data.content).toContain('<t:9999:R>');
     });
 
-    it('defaults to 9am when no time is given, shifted by Paris winter offset', async () => {
+    it("defaults to the user's preferred time when no time is given, shifted by their timezone", async () => {
+      // mockUser: dailyReminderHour=9, dailyReminderMinutes=0, timezone=Europe/Paris
       // naiveDate = 2030-12-01T00:00:00Z; isCertain('hour') = false → setUTCHours(9,0,0,0) applied
       vi.mocked(chrono.parse).mockReturnValue([parsedDate(new Date('2030-12-01T00:00:00Z'), false)] as any);
 
@@ -100,7 +108,8 @@ describe('handleModalSubmission', () => {
       };
       await handleModalSubmission(i);
 
-      expect(Reminders.create).toHaveBeenCalledWith(expect.objectContaining({ userId: 'dm-user' }));
+      expect(Users.findOrCreateByDiscordUserId).toHaveBeenCalledWith('dm-user');
+      expect(Reminders.create).toHaveBeenCalledWith(expect.objectContaining({ userId: 'internal-user-1' }));
     });
   });
 });
