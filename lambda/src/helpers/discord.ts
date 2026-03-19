@@ -34,6 +34,18 @@ export const sendMessage = async (channelId: string, content: string) => {
   if (!msgRes.ok) throw new Error(`Failed to send DM: ${msgRes.status} ${await msgRes.text()}`);
 };
 
+export const editOriginalResponse = async (token: string, data: { content: string; components: unknown[] }) => {
+  const res = await fetch(`https://discord.com/api/v10/webhooks/${process.env.DISCORD_APP_ID}/${token}/messages/@original`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+    },
+    body: JSON.stringify({ ...data, flags: 64 }),
+  });
+  if (!res.ok) throw new Error(`Failed to edit original response: ${res.status} ${await res.text()}`);
+};
+
 export const sendDirectMessage = async (userId: string, content: string) => {
   const dmChannelId = await findDirectMessageChannelId(userId);
   await sendMessage(dmChannelId, content);

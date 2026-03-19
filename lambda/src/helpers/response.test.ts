@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InteractionResponseType } from 'discord-interactions';
-import { respond, respondEphemeral, respondEphemeralWithComponents, respondModal, respondUpdateMessage } from './response';
+import { deferEphemeral, respond, respondEphemeral, respondEphemeralWithComponents, respondModal, respondUpdateMessage } from './response';
 
 describe('respond', () => {
   it('returns a 200 with CHANNEL_MESSAGE_WITH_SOURCE type', () => {
@@ -22,6 +22,17 @@ describe('respondEphemeral', () => {
     expect(result.statusCode).toBe(200);
     expect(body.type).toBe(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
     expect(body.data.content).toBe('Only you can see this');
+    expect(body.data.flags).toBe(64);
+  });
+});
+
+describe('deferEphemeral', () => {
+  it('returns a 200 with DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE type and flags 64', () => {
+    const result = deferEphemeral();
+    const body = JSON.parse(result.body);
+
+    expect(result.statusCode).toBe(200);
+    expect(body.type).toBe(InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
     expect(body.data.flags).toBe(64);
   });
 });

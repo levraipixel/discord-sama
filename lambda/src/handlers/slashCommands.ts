@@ -2,9 +2,8 @@ import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
 import { Users } from '../models/User';
 import { dateTag } from '../helpers/discord';
-import { respondEphemeral, respondEphemeralWithComponents } from '../helpers/response';
+import { respondEphemeral } from '../helpers/response';
 import { messageLink } from '../helpers/discord';
-import { buildSettingsMessage } from '../helpers/settings';
 
 export const handleSlashCommand = async (interaction: any) => {
   const { name, options } = interaction.data;
@@ -51,13 +50,6 @@ export const handleSlashCommand = async (interaction: any) => {
       await Promise.all(mine.map((r) => Reminders.delete(r.id)));
       return respondEphemeral(`Cleared ${mine.length} reminder(s).`);
     }
-  }
-
-  if (name === 'settings') {
-    const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
-    const user = await Users.findOrCreateByDiscordUserId(discordUserId);
-    const { content, components } = buildSettingsMessage(user);
-    return respondEphemeralWithComponents(content, components);
   }
 
   if (name === 'hello') {

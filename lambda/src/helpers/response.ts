@@ -18,6 +18,15 @@ export const respondEphemeral = (content: string) => ({
   }),
 });
 
+export const deferEphemeral = () => ({
+  statusCode: 200,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+    data: { flags: 64 },
+  }),
+});
+
 export const respondEphemeralWithComponents = (content: string, components: unknown[]) => ({
   statusCode: 200,
   headers: { 'Content-Type': 'application/json' },
@@ -31,7 +40,7 @@ export const respondUpdateMessage = (content: string, components: unknown[]) => 
   statusCode: 200,
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    type: 7, // UPDATE_MESSAGE
+    type: InteractionResponseType.UPDATE_MESSAGE,
     data: { content, flags: 64, components },
   }),
 });
@@ -46,5 +55,13 @@ export const respondModal = (customId: string, title: string, components: unknow
       title,
       components,
     },
+  }),
+});
+
+export const respondPong = () => ({
+  statusCode: 200,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    type: InteractionResponseType.PONG
   }),
 });

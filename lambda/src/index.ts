@@ -1,6 +1,8 @@
-import { verifyKey, InteractionType, InteractionResponseType } from 'discord-interactions';
-import { LambdaClient } from '@aws-sdk/client-lambda';
+import { verifyKey, InteractionType } from 'discord-interactions';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { checkReminders } from './tasks/checkReminders';
+import { sendSettings } from './tasks/sendSettings';
+import { deferEphemeral, respondPong } from './helpers/response';
 import { handleComponentInteraction } from './handlers/componentInteractions';
 import { handleContextMenuCommand } from './handlers/contextMenuCommands';
 import { handleModalSubmission } from './handlers/modalSubmissions';
@@ -19,6 +21,11 @@ export const handler = async (event: any) => {
     return { statusCode: 200 };
   }
 
+  if (event.asyncTask === 'sendSettings') {
+    await sendSettings({ interactionToken: event.interactionToken, discordUserId: event.discordUserId });
+    return { statusCode: 200 };
+  }
+
   const signature = event.headers['x-signature-ed25519'];
   const timestamp = event.headers['x-signature-timestamp'];
   const rawBody = event.body ?? '';
@@ -33,23 +40,29 @@ export const handler = async (event: any) => {
   const interaction = JSON.parse(rawBody);
 
   if (interaction.type === InteractionType.PING) {
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: InteractionResponseType.PONG }),
-    };
+    return respondPong();
   }
 
   if (interaction.type === InteractionType.MESSAGE_COMPONENT) {
     return handleComponentInteraction(interaction);
   }
 
+  if (interaction.type === InteractionType.MODAL_SUBMIT) {
+    return handleModalSubmission(interaction);
+  }
+
   if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data.type === 3) {
     return handleContextMenuCommand(interaction);
   }
 
-  if (interaction.type === InteractionType.MODAL_SUBMIT) {
-    return handleModalSubmission(interaction);
+  if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data?.name === 'settings') {
+    const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
+    await lambdaClient.send(new InvokeCommand({
+      FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME,
+      InvocationType: 'Event',
+      Payload: Buffer.from(JSON.stringify({ asyncTask: 'sendSettings', interactionToken: interaction.token, discordUserId })),
+    }));
+    return deferEphemeral();
   }
 
   if (interaction.type === InteractionType.APPLICATION_COMMAND) {
