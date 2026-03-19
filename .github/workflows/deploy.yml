@@ -68,6 +68,7 @@ jobs:
         env:
           TF_VAR_discord_public_key: ${{ secrets.DISCORD_PUBLIC_KEY }}
           TF_VAR_discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          TF_VAR_discord_app_id: ${{ vars.DISCORD_APP_ID }}
           TF_VAR_aws_region: ${{ vars.AWS_REGION || 'eu-west-3' }}
           TF_VAR_environment: ${{ inputs.environment || 'staging' }}
 

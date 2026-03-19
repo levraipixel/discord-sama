@@ -16,6 +16,11 @@ variable "discord_bot_token" {
   sensitive   = true
 }
 
+variable "discord_app_id" {
+  description = "Discord application ID used to edit deferred interaction responses"
+  type        = string
+}
+
 variable "project_name" {
   description = "Name prefix applied to all created resources"
   type        = string

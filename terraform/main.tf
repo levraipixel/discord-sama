@@ -54,7 +54,9 @@ resource "aws_lambda_function" "bot" {
     variables = {
       DISCORD_PUBLIC_KEY          = var.discord_public_key
       DISCORD_BOT_TOKEN           = var.discord_bot_token
+      DISCORD_APP_ID              = var.discord_app_id
       REMINDERS_TABLE_NAME        = aws_dynamodb_table.reminders.name
+      USERS_TABLE_NAME            = aws_dynamodb_table.users.name
     }
   }
 }
@@ -83,6 +85,34 @@ resource "aws_iam_role_policy" "lambda_dynamodb_reminders" {
       Effect   = "Allow"
       Action   = ["dynamodb:PutItem", "dynamodb:Scan", "dynamodb:DeleteItem"]
       Resource = aws_dynamodb_table.reminders.arn
+    }]
+  })
+}
+
+# ---------------------------------------------------------------------------
+# DynamoDB — users store
+# ---------------------------------------------------------------------------
+resource "aws_dynamodb_table" "users" {
+  name         = "${local.name_prefix}-users"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_dynamodb_users" {
+  name = "${local.name_prefix}-lambda-dynamodb-users"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["dynamodb:PutItem", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:UpdateItem"]
+      Resource = aws_dynamodb_table.users.arn
     }]
   })
 }
