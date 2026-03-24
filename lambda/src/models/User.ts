@@ -2,19 +2,15 @@ import { GetCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { ApplicationRecord, ApplicationRecords, client } from './ApplicationRecord';
 import { findDirectMessageChannelId } from '../helpers/discord';
 
-export type Language = 'en' | 'fr';
-
 export interface User extends ApplicationRecord {
   discordUserId: string;
   dmChannelId: string;
-  language: Language;
   timezone: string;
   dailyReminderHour: number;
   dailyReminderMinutes: number;
 }
 
 const USER_DEFAULTS = {
-  language: 'en' as Language,
   timezone: 'Europe/Paris',
   dailyReminderHour: 9,
   dailyReminderMinutes: 0,
@@ -26,12 +22,11 @@ export class Users extends ApplicationRecords {
   static async create({
     discordUserId,
     dmChannelId,
-    language = USER_DEFAULTS.language,
     timezone = USER_DEFAULTS.timezone,
     dailyReminderHour = USER_DEFAULTS.dailyReminderHour,
     dailyReminderMinutes = USER_DEFAULTS.dailyReminderMinutes,
-  }: Pick<User, 'discordUserId' | 'dmChannelId'> & Partial<Pick<User, 'language' | 'timezone' | 'dailyReminderHour' | 'dailyReminderMinutes'>>) {
-    return super.create({ discordUserId, dmChannelId, language, timezone, dailyReminderHour, dailyReminderMinutes });
+  }: Pick<User, 'discordUserId' | 'dmChannelId'> & Partial<Pick<User, 'timezone' | 'dailyReminderHour' | 'dailyReminderMinutes'>>) {
+    return super.create({ discordUserId, dmChannelId, timezone, dailyReminderHour, dailyReminderMinutes });
   }
 
   static async findById(id: string): Promise<User | null> {
@@ -45,7 +40,7 @@ export class Users extends ApplicationRecords {
     return (item as User) ?? null;
   }
 
-  static async update(id: string, patch: Partial<Pick<User, 'language' | 'timezone' | 'dailyReminderHour' | 'dailyReminderMinutes'>>) {
+  static async update(id: string, patch: Partial<Pick<User, 'timezone' | 'dailyReminderHour' | 'dailyReminderMinutes'>>) {
     const fields = Object.keys(patch) as Array<keyof typeof patch>;
     await client.send(new UpdateCommand({
       TableName: this.TABLE,

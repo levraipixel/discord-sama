@@ -7,31 +7,24 @@ export const handleComponentInteraction = async (interaction: any) => {
   const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
   const user = await Users.findOrCreateByDiscordUserId(discordUserId);
 
-  if (custom_id === 'settings:language') {
-    const language = values[0] as 'en' | 'fr';
-    await Users.update(user.id, { language });
-    const { content, components } = buildSettingsMessage({ ...user, language });
-    return respondUpdateMessage(content, components);
-  }
-
   if (custom_id === 'settings:timezone') {
     const timezone = values[0] as string;
     await Users.update(user.id, { timezone });
-    const { content, components } = buildSettingsMessage({ ...user, timezone });
+    const { content, components } = buildSettingsMessage({ ...user, timezone }, interaction.locale);
     return respondUpdateMessage(content, components);
   }
 
   if (custom_id === 'settings:reminderHour') {
     const dailyReminderHour = parseInt(values[0], 10);
     await Users.update(user.id, { dailyReminderHour });
-    const { content, components } = buildSettingsMessage({ ...user, dailyReminderHour });
+    const { content, components } = buildSettingsMessage({ ...user, dailyReminderHour }, interaction.locale);
     return respondUpdateMessage(content, components);
   }
 
   if (custom_id === 'settings:reminderMinutes') {
     const dailyReminderMinutes = parseInt(values[0], 10);
     await Users.update(user.id, { dailyReminderMinutes });
-    const { content, components } = buildSettingsMessage({ ...user, dailyReminderMinutes });
+    const { content, components } = buildSettingsMessage({ ...user, dailyReminderMinutes }, interaction.locale);
     return respondUpdateMessage(content, components);
   }
 };

@@ -22,7 +22,7 @@ export const handler = async (event: any) => {
   }
 
   if (event.asyncTask === 'sendSettings') {
-    await sendSettings({ interactionToken: event.interactionToken, discordUserId: event.discordUserId });
+    await sendSettings({ interactionToken: event.interactionToken, discordUserId: event.discordUserId, locale: event.locale });
     return { statusCode: 200 };
   }
 
@@ -60,7 +60,7 @@ export const handler = async (event: any) => {
     await lambdaClient.send(new InvokeCommand({
       FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME,
       InvocationType: 'Event',
-      Payload: Buffer.from(JSON.stringify({ asyncTask: 'sendSettings', interactionToken: interaction.token, discordUserId })),
+      Payload: Buffer.from(JSON.stringify({ asyncTask: 'sendSettings', interactionToken: interaction.token, discordUserId, locale: interaction.locale })),
     }));
     return deferEphemeral();
   }

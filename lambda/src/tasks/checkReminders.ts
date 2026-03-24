@@ -1,6 +1,7 @@
 import { Reminders } from '../models/Reminder';
 import { Users } from '../models/User';
 import { messageLink, sendMessage } from '../helpers/discord';
+import { t } from '../helpers/i18n';
 
 export const checkReminders = async () => {
   console.log('Running async task: checkReminders');
@@ -13,7 +14,7 @@ export const checkReminders = async () => {
       if (!user) throw new Error(`User not found: ${reminder.userId}`);
       
       const link = messageLink(reminder);
-      await sendMessage(user.dmChannelId, `You asked me to remind you of ${link}`);
+      await sendMessage(user.dmChannelId, t('en').reminder.dm.replace('{link}', link));
       await Reminders.delete(reminder.id);
       console.log(`checkReminders: sent reminder ${reminder.id} to user ${reminder.userId}`);
     } catch (err) {

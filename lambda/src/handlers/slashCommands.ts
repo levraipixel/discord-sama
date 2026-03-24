@@ -4,6 +4,7 @@ import { Users } from '../models/User';
 import { dateTag } from '../helpers/discord';
 import { respondEphemeral } from '../helpers/response';
 import { messageLink } from '../helpers/discord';
+import { t } from '../helpers/i18n';
 
 export const handleSlashCommand = async (interaction: any) => {
   const { name, options } = interaction.data;
@@ -17,17 +18,15 @@ export const handleSlashCommand = async (interaction: any) => {
     const mine = await SavedMessages.getAllForUser(user.id);
 
     if (action === 'list') {
-      if (mine.length === 0) return respondEphemeral('You have no saved messages.');
-      const lines = mine.map((r) => {
-        return `- ${messageLink(r)}`;
-      });
-      return respondEphemeral(`Your saved messages:\n${lines.join('\n')}`);
+      if (mine.length === 0) return respondEphemeral(t(interaction.locale).saved.list.empty);
+      const list = mine.map((r) => `- ${messageLink(r)}`).join('\n');
+      return respondEphemeral(t(interaction.locale).saved.list.result.replace('{list}', list));
     }
 
     if (action === 'clear') {
-      if (mine.length === 0) return respondEphemeral('You have no saved messages to clear.');
+      if (mine.length === 0) return respondEphemeral(t(interaction.locale).saved.clear.empty);
       await Promise.all(mine.map((r) => SavedMessages.delete(r.id)));
-      return respondEphemeral(`Cleared ${mine.length} saved message(s).`);
+      return respondEphemeral(t(interaction.locale).saved.clear.success.replace('{count}', String(mine.length)));
     }
   }
 
@@ -38,21 +37,19 @@ export const handleSlashCommand = async (interaction: any) => {
     const mine = await Reminders.getAllForUser(user.id);
 
     if (action === 'list') {
-      if (mine.length === 0) return respondEphemeral('You have no scheduled reminders.');
-      const lines = mine.map((r) => {
-        return `- ${messageLink(r)} — ${dateTag(r.remindAt)}`;
-      });
-      return respondEphemeral(`Your reminders:\n${lines.join('\n')}`);
+      if (mine.length === 0) return respondEphemeral(t(interaction.locale).remind.list.empty);
+      const list = mine.map((r) => `- ${messageLink(r)} — ${dateTag(r.remindAt)}`).join('\n');
+      return respondEphemeral(t(interaction.locale).remind.list.result.replace('{list}', list));
     }
 
     if (action === 'clear') {
-      if (mine.length === 0) return respondEphemeral('You have no reminders to clear.');
+      if (mine.length === 0) return respondEphemeral(t(interaction.locale).remind.clear.empty);
       await Promise.all(mine.map((r) => Reminders.delete(r.id)));
-      return respondEphemeral(`Cleared ${mine.length} reminder(s).`);
+      return respondEphemeral(t(interaction.locale).remind.clear.success.replace('{count}', String(mine.length)));
     }
   }
 
   if (name === 'hello') {
-    return respondEphemeral('Hello! I am Discord Sama, your serverless Discord bot powered by AWS Lambda! 🚀');
+    return respondEphemeral(t(interaction.locale).hello.message);
   }
 };

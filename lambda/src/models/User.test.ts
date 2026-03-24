@@ -21,7 +21,7 @@ vi.mock('@aws-sdk/lib-dynamodb', () => ({
   UpdateCommand: vi.fn((input) => ({ input })),
 }));
 
-const dbUser = { id: '1', discordUserId: 'u1', dmChannelId: 'dm1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null };
+const dbUser = { id: '1', discordUserId: 'u1', dmChannelId: 'dm1', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null };
 
 const sendMock = vi.spyOn(client, 'send');
 
@@ -39,7 +39,6 @@ describe('Users.create', () => {
     const id = await Users.create({
       discordUserId: 'u1',
       dmChannelId: 'dm1',
-      language: 'fr',
       timezone: 'Europe/Paris',
       dailyReminderHour: 8,
       dailyReminderMinutes: 30,
@@ -54,7 +53,6 @@ describe('Users.create', () => {
       Item: {
         discordUserId: 'u1',
         dmChannelId: 'dm1',
-        language: 'fr',
         timezone: 'Europe/Paris',
         dailyReminderHour: 8,
         dailyReminderMinutes: 30,
@@ -62,14 +60,13 @@ describe('Users.create', () => {
     });
   });
 
-  it('uses default values for language, timezone, and dailyReminderHour', async () => {
+  it('uses default values for timezone and dailyReminderHour', async () => {
     sendMock.mockResolvedValue({} as any);
 
     await Users.create({ discordUserId: 'u1', dmChannelId: 'dm1' });
 
     const [command] = sendMock.mock.calls[0];
     expect((command as any).input.Item).toMatchObject({
-      language: 'en',
       timezone: 'Europe/Paris',
       dailyReminderHour: 9,
       dailyReminderMinutes: 0,
@@ -100,7 +97,7 @@ describe('Users.findById', () => {
 describe('Users.findByDiscordUserId', () => {
   const items = [
     dbUser,
-    { id: '2', discordUserId: 'u2', dmChannelId: 'dm2', language: 'fr', timezone: 'America/New_York', dailyReminderHour: 7, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null },
+    { id: '2', discordUserId: 'u2', dmChannelId: 'dm2', timezone: 'America/New_York', dailyReminderHour: 7, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null },
   ];
 
   it('returns the user matching the discord user id', async () => {
@@ -134,15 +131,15 @@ describe('Users.update', () => {
   it('sends an UpdateCommand with the correct expression for a single field', async () => {
     sendMock.mockResolvedValue({} as any);
 
-    await Users.update('1', { language: 'fr' });
+    await Users.update('1', { timezone: 'America/New_York' });
 
     const [command] = sendMock.mock.calls[0];
     expect((command as any).input).toMatchObject({
       TableName: TABLE,
       Key: { id: '1' },
-      UpdateExpression: 'SET #language = :language, updatedAt = :updatedAt',
-      ExpressionAttributeNames: { '#language': 'language' },
-      ExpressionAttributeValues: { ':language': 'fr' },
+      UpdateExpression: 'SET #timezone = :timezone, updatedAt = :updatedAt',
+      ExpressionAttributeNames: { '#timezone': 'timezone' },
+      ExpressionAttributeValues: { ':timezone': 'America/New_York' },
     });
   });
 
@@ -178,7 +175,6 @@ describe('Users.findOrCreateByDiscordUserId', () => {
     expect(findDirectMessageChannelId).toHaveBeenCalledWith('new-user');
     expect(user.discordUserId).toBe('new-user');
     expect(user.dmChannelId).toBe('new-dm-channel');
-    expect(user.language).toBe('en');
     expect(user.timezone).toBe('Europe/Paris');
     expect(user.dailyReminderHour).toBe(9);
     expect(user.dailyReminderMinutes).toBe(0);

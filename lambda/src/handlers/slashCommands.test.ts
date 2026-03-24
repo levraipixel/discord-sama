@@ -19,7 +19,7 @@ import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
 import { Users } from '../models/User';
 
-const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
+const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
 
 const interaction = (name: string, action: string, userId = 'user-1') => ({
   data: { name, options: [{ name: 'action', value: action }] },

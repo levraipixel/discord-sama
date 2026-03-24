@@ -14,7 +14,7 @@ import { sendSettings } from './sendSettings';
 import { Users } from '../models/User';
 import { editOriginalResponse } from '../helpers/discord';
 
-const mockUser = { id: 'user-1', discordUserId: 'discord-1', dmChannelId: 'dm-1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null };
+const mockUser = { id: 'user-1', discordUserId: 'discord-1', dmChannelId: 'dm-1', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: null };
 
 beforeEach(() => {
   vi.mocked(Users.findOrCreateByDiscordUserId).mockResolvedValue(mockUser as any);
@@ -23,7 +23,7 @@ beforeEach(() => {
 
 describe('sendSettings', () => {
   it('finds or creates the user, then edits the original response', async () => {
-    await sendSettings({ interactionToken: 'tok-123', discordUserId: 'discord-1' });
+    await sendSettings({ interactionToken: 'tok-123', discordUserId: 'discord-1', locale: 'en' });
 
     expect(Users.findOrCreateByDiscordUserId).toHaveBeenCalledWith('discord-1');
     expect(editOriginalResponse).toHaveBeenCalledWith('tok-123', {

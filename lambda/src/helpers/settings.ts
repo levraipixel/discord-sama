@@ -1,10 +1,6 @@
 import { MessageComponentTypes } from 'discord-interactions';
 import { User } from '../models/User';
-
-const LANGUAGE_OPTIONS = [
-  { label: 'English', value: 'en' },
-  { label: 'Français', value: 'fr' },
-];
+import { t } from './i18n';
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
   label: `${i}:00`,
@@ -59,12 +55,17 @@ const selectMenu = (customId: string, placeholder: string, options: object[]) =>
   }],
 });
 
-export const buildSettingsMessage = (user: User) => ({
-  content: `**Settings**\nLanguage: **${user.language === 'en' ? 'English' : 'Français'}** · Timezone: **${user.timezone}** · Daily reminder: **${user.dailyReminderHour}:${String(user.dailyReminderMinutes).padStart(2, '0')}**`,
-  components: [
-    selectMenu('settings:language', 'Language', withDefault(LANGUAGE_OPTIONS, user.language)),
-    selectMenu('settings:timezone', 'Timezone', withDefault(TIMEZONE_OPTIONS, user.timezone)),
-    selectMenu('settings:reminderHour', 'Reminder hour', withDefault(HOUR_OPTIONS, String(user.dailyReminderHour))),
-    selectMenu('settings:reminderMinutes', 'Reminder minutes', withDefault(MINUTE_OPTIONS, String(user.dailyReminderMinutes))),
-  ],
-});
+export const buildSettingsMessage = (user: User, locale: string) => {
+  const tr = t(locale);
+  const time = `${user.dailyReminderHour}:${String(user.dailyReminderMinutes).padStart(2, '0')}`;
+  return {
+    content: tr.settings.content
+      .replace('{timezone}', user.timezone)
+      .replace('{time}', time),
+    components: [
+      selectMenu('settings:timezone', tr.settings.timezone, withDefault(TIMEZONE_OPTIONS, user.timezone)),
+      selectMenu('settings:reminderHour', tr.settings.reminderHour, withDefault(HOUR_OPTIONS, String(user.dailyReminderHour))),
+      selectMenu('settings:reminderMinutes', tr.settings.reminderMinutes, withDefault(MINUTE_OPTIONS, String(user.dailyReminderMinutes))),
+    ],
+  };
+};

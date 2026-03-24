@@ -1,7 +1,11 @@
 import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
 import { Users } from '../models/User';
+import { MessageComponentTypes, TextStyleTypes } from 'discord-interactions';
 import { respondEphemeral, respondModal } from '../helpers/response';
+import { t } from '../helpers/i18n';
+
+const LABEL = 18; // MessageComponentTypes.LABEL — not yet in discord-interactions package
 import { dateTag } from '../helpers/discord';
 import { getTimezoneOffsetMinutes } from '../helpers/timezone';
 
@@ -16,7 +20,7 @@ export const handleContextMenuCommand = async (interaction: any) => {
   if (commandId === process.env.COMMAND_ID_REMIND_1H) {
     const remindAt = new Date(Date.now() + 60 * 60 * 1000);
     await Reminders.create({ userId, messageId, channelId, guildId, remindAt });
-    return respondEphemeral(`Got it! I\'ll remind you about this message ${dateTag(remindAt)}. ⏰`);
+    return respondEphemeral(t(interaction.locale).remind1h.success.replace('{date}', dateTag(remindAt)));
   }
 
   if (commandId === process.env.COMMAND_ID_REMIND_TOMORROW) {
@@ -25,29 +29,29 @@ export const handleContextMenuCommand = async (interaction: any) => {
     naive.setUTCHours(user.dailyReminderHour, user.dailyReminderMinutes, 0, 0);
     const tomorrow = new Date(naive.getTime() - getTimezoneOffsetMinutes(user.timezone, naive) * 60000);
     await Reminders.create({ userId, messageId, channelId, guildId, remindAt: tomorrow });
-    return respondEphemeral(`Got it! I'll remind you about this message ${dateTag(tomorrow)}. ⏰`);
+    return respondEphemeral(t(interaction.locale).remindTomorrow.success.replace('{date}', dateTag(tomorrow)));
   }
 
   if (commandId === process.env.COMMAND_ID_REMIND_DATE) {
     return respondModal(
       `remind_date:${channelId}:${messageId}`,
-      'Schedule a reminder',
+      t(interaction.locale).remindDateModal.title,
       [{
-        type: 1, // ACTION_ROW
-        components: [{
-          type: 4, // TEXT_INPUT
+        type: LABEL,
+        label: t(interaction.locale).remindDateModal.label,
+        component: {
+          type: MessageComponentTypes.INPUT_TEXT,
           custom_id: 'date',
-          label: 'When?',
-          style: 1, // SHORT
-          placeholder: 'e.g. "in 2 weeks", "June 6 at 10pm", "2026-04-15"',
+          style: TextStyleTypes.SHORT,
+          placeholder: t(interaction.locale).remindDateModal.placeholder,
           required: true,
-        }],
+        },
       }],
     );
   }
 
   if (commandId === process.env.COMMAND_ID_SAVE_LATER) {
     await SavedMessages.create({ userId, messageId, channelId, guildId });
-    return respondEphemeral('Saved! Use `/saved list` to see your saved messages.');
+    return respondEphemeral(t(interaction.locale).saveLater.success);
   }
 };

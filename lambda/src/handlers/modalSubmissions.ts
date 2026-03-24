@@ -4,6 +4,7 @@ import { Users } from '../models/User';
 import { dateTag } from '../helpers/discord';
 import { respondEphemeral } from '../helpers/response';
 import { getTimezoneOffsetMinutes } from '../helpers/timezone';
+import { t } from '../helpers/i18n';
 
 export const handleModalSubmission = async (interaction: any) => {
   const { custom_id, components } = interaction.data;
@@ -19,7 +20,7 @@ export const handleModalSubmission = async (interaction: any) => {
     const now = new Date();
     const parsed = chrono.parse(dateValue, now, { forwardDate: true })[0];
     if (!parsed) {
-      return respondEphemeral(`I couldn't understand "${dateValue}". Try something like "in 2 weeks", "June 6 at 10pm", or "2026-04-15".`);
+      return respondEphemeral(t(interaction.locale).remindDateSubmit.parseError.replace('{input}', dateValue));
     }
 
     const naiveDate = parsed.date();
@@ -30,11 +31,11 @@ export const handleModalSubmission = async (interaction: any) => {
     const remindAt = new Date(naiveDate.getTime() - getTimezoneOffsetMinutes(user.timezone, naiveDate) * 60000);
 
     if (remindAt <= now) {
-      return respondEphemeral('Please provide a future date.');
+      return respondEphemeral(t(interaction.locale).remindDateSubmit.pastDateError);
     }
 
     await Reminders.create({ userId, messageId, channelId, guildId: interaction.guild_id ?? null, remindAt });
 
-    return respondEphemeral(`Got it! I'll remind you about this message ${dateTag(remindAt)}. ⏰`);
+    return respondEphemeral(t(interaction.locale).remindDateSubmit.success.replace('{date}', dateTag(remindAt)));
   }
 };

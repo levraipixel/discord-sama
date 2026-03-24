@@ -23,7 +23,7 @@ import { Reminders } from '../models/Reminder';
 import { SavedMessages } from '../models/SavedMessage';
 import { Users } from '../models/User';
 
-const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', language: 'en', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
+const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 'dm-1', timezone: 'Europe/Paris', dailyReminderHour: 9, dailyReminderMinutes: 0 };
 
 const interaction = (commandId: string, overrides: Record<string, unknown> = {}) => ({
   data: { id: commandId, target_id: 'msg-1' },
@@ -70,12 +70,25 @@ describe('handleContextMenuCommand', () => {
   });
 
   describe('"Remind me on specific date"', () => {
-    it('returns a modal with the correct custom_id', async () => {
+    it('returns an English modal by default', async () => {
       const result = await handleContextMenuCommand(interaction('cmd-remind-date'));
       const body = JSON.parse(result!.body);
 
       expect(body.data.custom_id).toBe('remind_date:chan-1:msg-1');
       expect(body.data.title).toBe('Schedule a reminder');
+      const label = body.data.components[0];
+      expect(label.type).toBe(18);
+      expect(label.label).toBe('When?');
+    });
+
+    it('returns a French modal when interaction.locale starts with fr', async () => {
+      const result = await handleContextMenuCommand(interaction('cmd-remind-date', { locale: 'fr-FR' }));
+      const body = JSON.parse(result!.body);
+
+      expect(body.data.title).toBe('Planifier un rappel');
+      const label = body.data.components[0];
+      expect(label.type).toBe(18);
+      expect(label.label).toBe('Quand ?');
     });
   });
 

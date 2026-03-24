@@ -20,7 +20,6 @@ const user = (id: string) => ({
   id,
   discordUserId: `discord-${id}`,
   dmChannelId: `dm-${id}`,
-  language: 'en',
   timezone: 'Europe/Paris',
   dailyReminderHour: 9,
   dailyReminderMinutes: 0,
