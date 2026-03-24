@@ -8,15 +8,10 @@
  * authoritative set. Propagation can take up to one hour globally.
  */
 
-const APP_ID = process.env.DISCORD_APP_ID;
-const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+import { appendFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
-if (!APP_ID || !BOT_TOKEN) {
-  console.error('Error: DISCORD_APP_ID and DISCORD_BOT_TOKEN must be set.');
-  process.exit(1);
-}
-
-const commands = [
+export const commands = [
   {
     name: 'settings',
     description: 'View and update your personal settings',
@@ -99,52 +94,60 @@ const commands = [
   {
     name: 'Remind me on specific date',
     type: 3, // MESSAGE
-    name_localizations: { fr: 'Me le rappeler à une date précise' },
+    name_localizations: { fr: 'Me le rappeler plus tard' },
   },
   {
     name: 'Save for later',
     type: 3, // MESSAGE
-    name_localizations: { fr: 'Sauvegarder pour plus tard' },
+    name_localizations: { fr: 'Sauvegarder' },
   },
 ];
 
-const url = `https://discord.com/api/v10/applications/${APP_ID}/commands`;
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const APP_ID = process.env.DISCORD_APP_ID;
+  const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
-const response = await fetch(url, {
-  method: 'PUT',
-  headers: {
-    Authorization: `Bot ${BOT_TOKEN}`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(commands),
-});
+  if (!APP_ID || !BOT_TOKEN) {
+    console.error('Error: DISCORD_APP_ID and DISCORD_BOT_TOKEN must be set.');
+    process.exit(1);
+  }
 
-if (!response.ok) {
-  const error = await response.text();
-  console.error(`Failed to register commands (${response.status}):`, error);
-  process.exit(1);
-}
+  const url = `https://discord.com/api/v10/applications/${APP_ID}/commands`;
 
-const registered = await response.json();
-console.log(`Successfully registered ${registered.length} command(s):\n`);
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bot ${BOT_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(commands),
+  });
 
-const nameToOutput = {
-  'Remind me in 1 hour':        'command_id_remind_1h',
-  'Remind me tomorrow':         'command_id_remind_tomorrow',
-  'Remind me on specific date': 'command_id_remind_date',
-  'Save for later':             'command_id_save_later',
-};
+  if (!response.ok) {
+    const error = await response.text();
+    console.error(`Failed to register commands (${response.status}):`, error);
+    process.exit(1);
+  }
 
-import { appendFileSync } from 'fs';
+  const registered = await response.json();
+  console.log(`Successfully registered ${registered.length} command(s):\n`);
 
-for (const cmd of registered) {
-  const outputName = nameToOutput[cmd.name];
-  if (outputName) {
-    console.log(`  ${outputName}=${cmd.id}`);
-    if (process.env.GITHUB_OUTPUT) {
-      appendFileSync(process.env.GITHUB_OUTPUT, `${outputName}=${cmd.id}\n`);
+  const nameToOutput = {
+    'Remind me in 1 hour':        'command_id_remind_1h',
+    'Remind me tomorrow':         'command_id_remind_tomorrow',
+    'Remind me on specific date': 'command_id_remind_date',
+    'Save for later':             'command_id_save_later',
+  };
+
+  for (const cmd of registered) {
+    const outputName = nameToOutput[cmd.name];
+    if (outputName) {
+      console.log(`  ${outputName}=${cmd.id}`);
+      if (process.env.GITHUB_OUTPUT) {
+        appendFileSync(process.env.GITHUB_OUTPUT, `${outputName}=${cmd.id}\n`);
+      }
+    } else {
+      console.log(`  [type ${cmd.type ?? 1}] ${cmd.name} → ${cmd.id}`);
     }
-  } else {
-    console.log(`  [type ${cmd.type ?? 1}] ${cmd.name} → ${cmd.id}`);
   }
 }

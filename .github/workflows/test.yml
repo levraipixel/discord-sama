@@ -28,3 +28,6 @@ jobs:
       - name: Run tests
         working-directory: lambda
         run: npm test
+
+      - name: Validate command definitions
+        run: node --test scripts/register-commands.test.mjs
