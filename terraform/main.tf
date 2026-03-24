@@ -57,6 +57,10 @@ resource "aws_lambda_function" "bot" {
       DISCORD_APP_ID              = var.discord_app_id
       REMINDERS_TABLE_NAME        = aws_dynamodb_table.reminders.name
       USERS_TABLE_NAME            = aws_dynamodb_table.users.name
+      COMMAND_ID_REMIND_1H        = var.command_id_remind_1h
+      COMMAND_ID_REMIND_TOMORROW  = var.command_id_remind_tomorrow
+      COMMAND_ID_REMIND_DATE      = var.command_id_remind_date
+      COMMAND_ID_SAVE_LATER       = var.command_id_save_later
     }
   }
 }

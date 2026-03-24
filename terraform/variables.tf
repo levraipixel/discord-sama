@@ -21,6 +21,26 @@ variable "discord_app_id" {
   type        = string
 }
 
+variable "command_id_remind_1h" {
+  description = "Discord command ID for 'Remind me in 1 hour'"
+  type        = string
+}
+
+variable "command_id_remind_tomorrow" {
+  description = "Discord command ID for 'Remind me tomorrow'"
+  type        = string
+}
+
+variable "command_id_remind_date" {
+  description = "Discord command ID for 'Remind me on specific date'"
+  type        = string
+}
+
+variable "command_id_save_later" {
+  description = "Discord command ID for 'Save for later'"
+  type        = string
+}
+
 variable "project_name" {
   description = "Name prefix applied to all created resources"
   type        = string

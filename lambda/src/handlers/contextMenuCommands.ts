@@ -6,20 +6,20 @@ import { dateTag } from '../helpers/discord';
 import { getTimezoneOffsetMinutes } from '../helpers/timezone';
 
 export const handleContextMenuCommand = async (interaction: any) => {
-  const { name, target_id: messageId } = interaction.data;
+  const { id: commandId, target_id: messageId } = interaction.data;
   const discordUserId = interaction.member?.user?.id ?? interaction.user?.id;
   const user = await Users.findOrCreateByDiscordUserId(discordUserId);
   const userId = user.id;
   const channelId = interaction.channel_id;
   const guildId = interaction.guild_id ?? null;
 
-  if (name === 'Remind me in 1 hour') {
+  if (commandId === process.env.COMMAND_ID_REMIND_1H) {
     const remindAt = new Date(Date.now() + 60 * 60 * 1000);
     await Reminders.create({ userId, messageId, channelId, guildId, remindAt });
     return respondEphemeral(`Got it! I\'ll remind you about this message ${dateTag(remindAt)}. ⏰`);
   }
 
-  if (name === 'Remind me tomorrow') {
+  if (commandId === process.env.COMMAND_ID_REMIND_TOMORROW) {
     const naive = new Date();
     naive.setUTCDate(naive.getUTCDate() + 1);
     naive.setUTCHours(user.dailyReminderHour, user.dailyReminderMinutes, 0, 0);
@@ -28,7 +28,7 @@ export const handleContextMenuCommand = async (interaction: any) => {
     return respondEphemeral(`Got it! I'll remind you about this message ${dateTag(tomorrow)}. ⏰`);
   }
 
-  if (name === 'Remind me on specific date') {
+  if (commandId === process.env.COMMAND_ID_REMIND_DATE) {
     return respondModal(
       `remind_date:${channelId}:${messageId}`,
       'Schedule a reminder',
@@ -46,7 +46,7 @@ export const handleContextMenuCommand = async (interaction: any) => {
     );
   }
 
-  if (name === 'Save for later') {
+  if (commandId === process.env.COMMAND_ID_SAVE_LATER) {
     await SavedMessages.create({ userId, messageId, channelId, guildId });
     return respondEphemeral('Saved! Use `/saved list` to see your saved messages.');
   }
