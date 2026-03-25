@@ -23,7 +23,7 @@ const mockUser = { id: 'internal-user-1', discordUserId: 'user-1', dmChannelId: 
 const interaction = (customId: string, dateValue: string, overrides: Record<string, unknown> = {}) => ({
   data: {
     custom_id: customId,
-    components: [{ components: [{ value: dateValue }] }],
+    components: [{ component: { value: dateValue } }],
   },
   member: { user: { id: 'user-1' } },
   guild_id: 'guild-1',
@@ -103,7 +103,7 @@ describe('handleModalSubmission', () => {
       vi.mocked(chrono.parse).mockReturnValue([parsedDate(new Date('2030-06-15T15:00:00Z'))] as any);
 
       const i = {
-        data: { custom_id: 'remind_date:chan-1:msg-1', components: [{ components: [{ value: '2030-06-15' }] }] },
+        data: { custom_id: 'remind_date:chan-1:msg-1', components: [{ component: { value: '2030-06-15' } }] },
         user: { id: 'dm-user' },
       };
       await handleModalSubmission(i);
