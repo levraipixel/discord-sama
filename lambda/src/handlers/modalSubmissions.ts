@@ -15,7 +15,7 @@ export const handleModalSubmission = async (interaction: any) => {
     const userId = user.id;
 
     const [, channelId, messageId] = custom_id.split(':');
-    const dateValue = components[0].components[0].value.trim();
+    const dateValue = components[0].component.value.trim();
 
     const now = new Date();
     const parsed = chrono.parse(dateValue, now, { forwardDate: true })[0];
