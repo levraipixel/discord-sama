@@ -18,7 +18,9 @@ export const handleModalSubmission = async (interaction: any) => {
     const dateValue = components[0].component.value.trim();
 
     const now = new Date();
-    const parsed = chrono.parse(dateValue, now, { forwardDate: true })[0];
+    const lang = interaction.locale?.slice(0, 2);
+    const parser = lang === 'fr' ? chrono.fr : chrono;
+    const parsed = parser.parse(dateValue, now, { forwardDate: true })[0];
     if (!parsed) {
       return respondEphemeral(t(interaction.locale).remindDateSubmit.parseError.replace('{input}', dateValue));
     }
